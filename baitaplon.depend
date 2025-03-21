@@ -1,0 +1,22 @@
+# depslib dependency file v1.0
+1742492799 source:e:\codeblocks\baitaplon\main.cpp
+	"CommonFunc.h"
+	"BaseObject.h"
+
+1742478642 source:e:\codeblocks\baitaplon\commonfunc.cpp
+	"CommonFunc.h"
+
+1742481282 e:\codeblocks\baitaplon\commonfunc.h
+	<windows.h>
+	<string>
+	<SDL.h>
+	<SDL_image.h>
+	<SDL_mixer.h>
+	<SDL_ttf.h>
+
+1742484792 source:e:\codeblocks\baitaplon\baseobject.cpp
+	"BaseObject.h"
+
+1742478652 e:\codeblocks\baitaplon\baseobject.h
+	"CommonFunc.h"
+
