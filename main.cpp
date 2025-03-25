@@ -81,7 +81,6 @@ int main(int argc, char* argv[])
     p_player.set_clips();
 
     bool is_quit = false;
-    int map_x_offset = 0;  // Biến lưu vị trí bắt đầu của map
 
     while(!is_quit)
     {
@@ -100,23 +99,17 @@ int main(int argc, char* argv[])
         SDL_RenderClear(g_screen);
 
         g_background.Render(g_screen, NULL);
+
         Map map_data = game_map.getMap();
-
-        // Cập nhật vị trí của map để di chuyển sang trái
-        map_x_offset += 2;  // Điều chỉnh tốc độ di chuyển của map
-        if(map_x_offset > map_data.max_x_) // Đảm bảo không vượt quá giới hạn bản đồ
-        {
-            map_x_offset = 0;
-        }
-        map_data.start_x_ = map_x_offset;
-        game_map.SetMap(map_data);
-
         p_player.HandleBullet(g_screen);
         p_player.SetMapXY(map_data.start_x_, map_data.start_y_);
         p_player.DoPlayer(map_data);
 
+        game_map.SetMap(map_data);
+
         game_map.DrawMap(g_screen);
         p_player.Show(g_screen);
+
 
         SDL_RenderPresent(g_screen);
 

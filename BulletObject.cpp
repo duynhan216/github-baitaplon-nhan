@@ -32,3 +32,4 @@ void BulletObject::HandleMove(const int& x_border,const int& y_border)
         }
     }
 }
+
