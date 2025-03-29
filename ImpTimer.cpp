@@ -21,6 +21,7 @@ void ImpTimer::start()
     is_started_ = true;
     is_paused_ = false;
     start_tick_ = SDL_GetTicks();
+    paused_tick_ = 0;
 }
 
 void ImpTimer::stop()

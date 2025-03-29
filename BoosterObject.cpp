@@ -61,9 +61,9 @@ void BoosterObject::Show(SDL_Renderer* des)
 void BoosterObject::RandomSpawn(Map& map_data)
 {
     int maxPosX = map_data.max_x_ - width_frame_;
-    x_pos_ = rand() % (maxPosX / TILE_SIZE) * TILE_SIZE;
+    x_pos_ = 1 + rand() % (maxPosX / TILE_SIZE) * TILE_SIZE;
+
 
     int minY = TILE_SIZE*4;
-    int maxY = TILE_SIZE*7;
     y_pos_ = minY + (rand() % (7-4) * TILE_SIZE);
 }

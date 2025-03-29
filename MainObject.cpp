@@ -2,10 +2,12 @@
 #include "MainObject.h"
 
 #define SCORE_TIME_FACTOR 1000
-#define SHIELD_DURATION 5000       // 5000 ms = 5 giây
-#define BULLET_COOLDOWN 3000        // 300 ms cooldown
+#define SHIELD_DURATION 5000
+#define BULLET_COOLDOWN 3000
 #define SHIELD_COOLDOWN 10000
 
+extern bool is_game_paused;
+extern ImpTimer fps_timer;
 
 MainObject::MainObject()
 {
@@ -20,7 +22,6 @@ MainObject::MainObject()
     status_ = WALK_NONE;
     input_type_.right_ = 0;
     input_type_.left_ = 0;
-    input_type_.down_ = 0;
     input_type_.jump_ = 0;
     input_type_.up_ = 0;
     map_x_ = 0;
@@ -250,6 +251,45 @@ void MainObject::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
                 ActivateShield();
             }
             break;
+            case SDLK_SPACE:
+            {
+                unsigned current_time = SDL_GetTicks();
+                if ( current_time - last_bullet_time_ >= BULLET_COOLDOWN)
+                {
+                    BulletObject* p_bullet = new BulletObject();
+                    if(status_ == WALK_LEFT)
+                    {
+                        p_bullet->LoadImg("img//player_bullet_left.png", screen);
+                        p_bullet->set_bullet_dir(BulletObject::DIR_LEFT);
+                        p_bullet->SetRect(this->rect_.x - 30, rect_.y + height_frame_*0.05);
+                    }
+                    else
+                    {
+                        p_bullet->LoadImg("img//player_bullet_right.png", screen);
+                        p_bullet->set_bullet_dir(BulletObject::DIR_RIGHT);
+                        p_bullet->SetRect(this->rect_.x , rect_.y - height_frame_*0.05);
+                    }
+                    p_bullet->set_is_move(true);
+                    p_bullet_list_.push_back(p_bullet);
+                    last_bullet_time_ = current_time;
+                }
+            }
+            break;
+            case SDLK_RETURN:
+            {
+                if (!is_game_paused)
+                {
+                    fps_timer.paused();
+                    is_game_paused = true;
+                }
+                else
+                {
+                    fps_timer.unpaused();
+                    is_game_paused = false;
+                }
+                break;
+            }
+
         }
     }
     else if(events.type == SDL_KEYUP)
@@ -266,37 +306,6 @@ void MainObject::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
                 input_type_.left_ = 0;
             }
             break;
-        }
-    }
-    if(events.type == SDL_MOUSEBUTTONDOWN)
-    {
-        unsigned current_time = SDL_GetTicks();
-
-        if(events.button.button == SDL_BUTTON_LEFT)
-        {
-            if ( current_time - last_bullet_time_ >= BULLET_COOLDOWN)
-            {
-                BulletObject* p_bullet = new BulletObject();
-
-                if(status_ == WALK_LEFT)
-                {
-                    p_bullet->LoadImg("img//player_bullet_left.png", screen);
-                    p_bullet->set_bullet_dir(BulletObject::DIR_LEFT);
-                    p_bullet->SetRect(this->rect_.x - 30, rect_.y + height_frame_*0.05);
-                }
-                else
-                {
-                    p_bullet->LoadImg("img//player_bullet_right.png", screen);
-                    p_bullet->set_bullet_dir(BulletObject::DIR_RIGHT);
-                    p_bullet->SetRect(this->rect_.x , rect_.y - height_frame_*0.05);
-                }
-                p_bullet->set_is_move(true);
-
-                p_bullet_list_.push_back(p_bullet);
-
-                last_bullet_time_ = current_time;
-            }
-
         }
     }
 }
@@ -395,6 +404,7 @@ void MainObject::DoPlayer(Map& map_data)
             y_pos_ = 0;
             x_val_ = 0;
             y_val_ = 0;
+            shield_on_cooldown_ = false;
             ActivateShield();
         }
     }
@@ -614,6 +624,5 @@ double MainObject::GetBulletCooldown()
         return (double)(BULLET_COOLDOWN - (current_time - last_bullet_time_))/1000;
     }
 }
-
 
 

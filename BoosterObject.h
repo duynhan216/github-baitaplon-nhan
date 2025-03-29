@@ -35,7 +35,7 @@ private:
     int x_pos_;
     int y_pos_;
 
-    static const int NUM_FRAME_BOOSTER = 8;
+    static const int NUM_FRAME_BOOSTER = 6;
 
     SDL_Rect frame_clip_[NUM_FRAME_BOOSTER];
 

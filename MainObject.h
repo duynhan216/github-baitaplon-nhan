@@ -5,6 +5,7 @@
 #include "CommonFunc.h"
 #include "BaseObject.h"
 #include "BulletObject.h"
+#include "ImpTimer.h"
 
 class MainObject : public BaseObject
 {
@@ -44,9 +45,14 @@ public:
     int get_health() const {return health_;}
     void DecreaseHealth(int value);
     void IncreaseHealth(int value);
+    void set_health(float val) {health_ = val;}
+
+    void set_x_pos_(float val) {x_pos_ = val;}
+    void set_y_pos_(float val) {y_pos_ = val;}
+    void SetScore(int val) {score_ = val;}
 
     void ActivateShield();
-
+    bool shield_on_cooldown_;
     void UpdateShield();
 
     bool IsShieldActive() const {return shield_active_;}
@@ -89,7 +95,6 @@ private:
 
     bool shield_active_;
     unsigned int shield_start_time_;
-    bool shield_on_cooldown_;
     unsigned int shield_cooldown_start_time_;
 
     SDL_Texture* shield_texture_;

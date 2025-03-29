@@ -3,7 +3,7 @@
 bool CheckCollision(const SDL_Rect& object1, const SDL_Rect& object2)
 {
     int left_a = object1.x;
-    int right_a = object1.x + object2.w;
+    int right_a = object1.x + object1.w;
     int top_a = object1.y;
     int bottom_a = object1.y + object1.h;
 
@@ -11,6 +11,11 @@ bool CheckCollision(const SDL_Rect& object1, const SDL_Rect& object2)
     int right_b = object2.x + object2.w;
     int top_b = object2.y;
     int bottom_b = object2.y + object2.h;
+
+    int verticalOverlap = std::min(bottom_a, bottom_b) - std::max(top_a, top_b);
+    const int verticalTolerance = 2;
+    if(verticalOverlap < verticalTolerance)
+        return false;
 
     // size object1 < object2
     if(left_a > left_b && left_a < right_b)

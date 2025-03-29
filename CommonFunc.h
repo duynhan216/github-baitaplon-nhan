@@ -64,16 +64,15 @@ static const unsigned SPAWN_MAX_HP = 2000;
 
 #define PLAYER_JUMP_VAL 40
 
-typedef struct Input
+struct Input
 {
     int left_;
     int right_;
     int up_;
-    int down_;
     int jump_;
 };
 
-typedef struct Map
+struct Map
 {
     int start_x_;
     int start_y_;
