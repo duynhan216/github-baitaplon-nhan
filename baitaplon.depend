@@ -1,15 +1,18 @@
 # depslib dependency file v1.0
-1742892722 source:e:\codeblocks\baitaplon\main.cpp
+1743226688 source:e:\codeblocks\baitaplon\main.cpp
 	"CommonFunc.h"
 	"BaseObject.h"
 	"game_map.h"
 	"MainObject.h"
 	"ImpTimer.h"
+	"ThreatsObject.h"
+	"BoosterObject.h"
+	"TextObject.h"
 
-1742891898 source:e:\codeblocks\baitaplon\commonfunc.cpp
+1743160838 source:e:\codeblocks\baitaplon\commonfunc.cpp
 	"CommonFunc.h"
 
-1742891898 e:\codeblocks\baitaplon\commonfunc.h
+1743226766 e:\codeblocks\baitaplon\commonfunc.h
 	<windows.h>
 	<iostream>
 	<string>
@@ -21,42 +24,68 @@
 	<ctime>
 	<cmath>
 	<set>
+	<vector>
+	<cstdlib>
+	<iomanip>
 
 1742892680 source:e:\codeblocks\baitaplon\baseobject.cpp
 	"BaseObject.h"
 
-1742892680 e:\codeblocks\baitaplon\baseobject.h
+1742945336 e:\codeblocks\baitaplon\baseobject.h
 	"CommonFunc.h"
 
 1742891899 source:e:\codeblocks\baitaplon\game_map.cpp
 	"game_map.h"
 
-1742891899 e:\codeblocks\baitaplon\game_map.h
+1742937979 e:\codeblocks\baitaplon\game_map.h
 	"CommonFunc.h"
 	"BaseObject.h"
 
-1742891898 e:\codeblocks\baitaplon\mainobject.h
-	<vector>
+1743220837 e:\codeblocks\baitaplon\mainobject.h
 	"CommonFunc.h"
 	"BaseObject.h"
 	"BulletObject.h"
 
-1742893829 source:e:\codeblocks\baitaplon\mainobject.cpp
+1743220780 source:e:\codeblocks\baitaplon\mainobject.cpp
 	"MainObject.h"
 
 1742891898 source:e:\codeblocks\baitaplon\imptimer.cpp
 	"ImpTimer.h"
 	"CommonFunc.h"
 
-1742891898 e:\codeblocks\baitaplon\imptimer.h
+1742937979 e:\codeblocks\baitaplon\imptimer.h
 
-1742892554 e:\codeblocks\baitaplon\bulletobject.h
+1743082741 e:\codeblocks\baitaplon\bulletobject.h
 	"BaseObject.h"
 	"CommonFunc.h"
 
 1742884882 source:e:\codeblocks\baitaplon\bulletobject..cpp
 	"BulletObject.h"
 
-1742892554 source:e:\codeblocks\baitaplon\bulletobject.cpp
+1743082731 source:e:\codeblocks\baitaplon\bulletobject.cpp
 	"BulletObject.h"
+
+1743157990 source:e:\codeblocks\baitaplon\threatsobject.cpp
+	"ThreatsObject.h"
+
+1743157990 e:\codeblocks\baitaplon\threatsobject.h
+	"BaseObject.h"
+	"game_map.h"
+	"CommonFunc.h"
+
+1743222116 source:e:\codeblocks\baitaplon\textobject.cpp
+	"TextObject.h"
+
+1743212690 e:\codeblocks\baitaplon\boosterobject.h
+	"BaseObject.h"
+	"CommonFunc.h"
+	"game_map.h"
+
+1743213362 source:e:\codeblocks\baitaplon\boosterobject.cpp
+	"BoosterObject.h"
+
+1743222139 e:\codeblocks\baitaplon\textobject.h
+	<string>
+	<SDL.h>
+	<SDL_ttf.h>
 

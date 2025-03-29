@@ -9,7 +9,7 @@ public:
     BaseObject();
     ~BaseObject();
     void SetRect(const int& x,const int& y) {rect_.x = x,rect_.y = y;}
-    SDL_Rect GetRec() const {return rect_;}
+    SDL_Rect GetRect() const {return rect_;}
     SDL_Texture* GetObject() const {return p_object_;}
 
     virtual bool LoadImg(std::string path,SDL_Renderer* screen);
@@ -21,4 +21,4 @@ protected:
     SDL_Rect rect_;
 };
 
-#endif // BASE_OBJECT_H_
+#endif

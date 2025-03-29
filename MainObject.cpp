@@ -1,8 +1,15 @@
 
 #include "MainObject.h"
 
+#define SCORE_TIME_FACTOR 1000
+#define SHIELD_DURATION 5000       // 5000 ms = 5 giây
+#define BULLET_COOLDOWN 3000        // 300 ms cooldown
+#define SHIELD_COOLDOWN 10000
+
+
 MainObject::MainObject()
 {
+    last_bullet_time_ = 0;
     frame_ = 0;
     x_pos_ = 0;
     y_pos_ = 0;
@@ -20,6 +27,19 @@ MainObject::MainObject()
     map_y_ = 0;
 
     come_back_time_ = 0;
+
+    start_time_ = SDL_GetTicks();
+
+    shield_active_ = false;
+    shield_start_time_ = 0;
+    shield_on_cooldown_ = false;
+    shield_cooldown_start_time_ = 0;
+    shield_texture_ = NULL;
+    shield_frame_ = 0;
+
+    health_ = NUM_HP;
+    score_ = 0;
+    score_accumulator_ = 0;
 
 }
 
@@ -39,6 +59,16 @@ bool MainObject::LoadImg(std::string path, SDL_Renderer* screen)
     return ret;
 }
 
+SDL_Rect MainObject::GetRectFrame()
+{
+    SDL_Rect rect;
+    rect.x = rect_.x;
+    rect.y = rect_.y;
+    rect.w = width_frame_;
+    rect.h = height_frame_;
+    return rect;
+}
+
 void MainObject::set_clips()
 {
     if(width_frame_>0 && height_frame_>0)
@@ -52,6 +82,77 @@ void MainObject::set_clips()
         }
     }
 }
+
+bool MainObject::LoadShieldImg(std::string path, SDL_Renderer* screen)
+{
+    if(shield_texture_ != NULL)
+    {
+        SDL_DestroyTexture(shield_texture_);
+        shield_texture_ = NULL;
+    }
+    shield_texture_ = IMG_LoadTexture(screen, path.c_str());
+    if(shield_texture_ == NULL)
+    {
+        return false;
+    }
+
+    int w, h;
+    SDL_QueryTexture(shield_texture_, NULL, NULL, &w, &h);
+
+    shield_frame_width_ = w / MAX_SHIELD_FRAME ;
+    shield_frame_height_ = h;
+
+    for(int i = 0; i < MAX_SHIELD_FRAME; i++)
+    {
+        shield_clip_[i].x = i * shield_frame_width_;
+        shield_clip_[i].y = 0;
+        shield_clip_[i].w = shield_frame_width_;
+        shield_clip_[i].h = shield_frame_height_;
+    }
+    shield_frame_ = 0;
+
+    return true;
+}
+
+void MainObject::UpdateShield()
+{
+    if(shield_active_)
+    {
+        unsigned elapsed = SDL_GetTicks() - shield_start_time_;
+        if(elapsed >= SHIELD_DURATION)
+        {
+            shield_active_ = false;
+            shield_on_cooldown_ = true;
+            shield_cooldown_start_time_ = SDL_GetTicks();
+        }
+        else
+        {
+            unsigned frame_interval = 500 / MAX_SHIELD_FRAME;
+            shield_frame_ = (elapsed / frame_interval) % MAX_SHIELD_FRAME;
+        }
+    }
+    else
+    {
+        if (shield_on_cooldown_)
+        {
+            unsigned current_time = SDL_GetTicks();
+            if (current_time - shield_cooldown_start_time_ >= SHIELD_COOLDOWN)
+            {
+                shield_on_cooldown_ = false;
+            }
+        }
+    }
+}
+
+void MainObject::ActivateShield()
+{
+    if (!shield_active_ && !shield_on_cooldown_)
+    {
+        shield_active_ = true;
+        shield_start_time_ = SDL_GetTicks();
+    }
+}
+
 
 void MainObject::Show(SDL_Renderer* des)
 {
@@ -93,7 +194,16 @@ void MainObject::Show(SDL_Renderer* des)
     {
         frame_ = 0;
     }
+    if(shield_active_ && shield_texture_ != NULL)
+    {
+    SDL_Rect shieldQuad;
+    shieldQuad.w = shield_frame_width_;
+    shieldQuad.h = shield_frame_height_;
 
+    shieldQuad.x = rect_.x + (width_frame_ - shield_frame_width_) / 2 + 1;
+    shieldQuad.y = rect_.y + (height_frame_ - shield_frame_height_) / 2 - 50;
+    SDL_RenderCopy(des, shield_texture_, &shield_clip_[shield_frame_], &shieldQuad);
+    }
     if(come_back_time_ == 0)
     {
         rect_.x = x_pos_ - map_x_;
@@ -114,7 +224,7 @@ void MainObject::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
     {
         switch(events.key.keysym.sym)
         {
-        case SDLK_RIGHT:
+            case SDLK_d:
             {
                 status_ = WALK_RIGHT;
                 input_type_.right_ = 1;
@@ -122,12 +232,22 @@ void MainObject::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
                 UpdateImagePlayer(screen);
             }
             break;
-        case SDLK_LEFT:
+            case SDLK_a:
             {
                 status_ = WALK_LEFT;
                 input_type_.left_ = 1;
                 input_type_.right_ = 0;
                 UpdateImagePlayer(screen);
+            }
+            break;
+            case SDLK_w:
+            {
+                input_type_.jump_ = 1;
+            }
+            break;
+            case SDLK_s:
+            {
+                ActivateShield();
             }
             break;
         }
@@ -136,48 +256,51 @@ void MainObject::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
     {
         switch(events.key.keysym.sym)
         {
-        case SDLK_RIGHT:
+            case SDLK_d:
             {
                 input_type_.right_ = 0;
             }
             break;
-        case SDLK_LEFT:
+            case SDLK_a:
             {
                 input_type_.left_ = 0;
             }
             break;
         }
     }
-
     if(events.type == SDL_MOUSEBUTTONDOWN)
     {
-        if(events.button.button == SDL_BUTTON_RIGHT)
-        {
-            input_type_.jump_ = 1;
-        }
-        else if(events.button.button == SDL_BUTTON_LEFT)
-        {
-            BulletObject* p_bullet = new BulletObject();
+        unsigned current_time = SDL_GetTicks();
 
-            if(status_ == WALK_LEFT)
+        if(events.button.button == SDL_BUTTON_LEFT)
+        {
+            if ( current_time - last_bullet_time_ >= BULLET_COOLDOWN)
             {
-                p_bullet->LoadImg("img//player_bullet_left.png", screen);
-                p_bullet->set_bullet_dir(BulletObject::DIR_LEFT);
-                p_bullet->SetRect(this->rect_.x, rect_.y + height_frame_*0.05);
-            }
-            else
-            {
-                p_bullet->LoadImg("img//player_bullet_right.png", screen);
-                p_bullet->set_bullet_dir(BulletObject::DIR_RIGHT);
-                p_bullet->SetRect(this->rect_.x + width_frame_ - 40, rect_.y + height_frame_*0.05);
-            }
-            p_bullet->set_x_val(20);
-            p_bullet->set_is_move(true);
+                BulletObject* p_bullet = new BulletObject();
 
-            p_bullet_list_.push_back(p_bullet);
+                if(status_ == WALK_LEFT)
+                {
+                    p_bullet->LoadImg("img//player_bullet_left.png", screen);
+                    p_bullet->set_bullet_dir(BulletObject::DIR_LEFT);
+                    p_bullet->SetRect(this->rect_.x - 30, rect_.y + height_frame_*0.05);
+                }
+                else
+                {
+                    p_bullet->LoadImg("img//player_bullet_right.png", screen);
+                    p_bullet->set_bullet_dir(BulletObject::DIR_RIGHT);
+                    p_bullet->SetRect(this->rect_.x , rect_.y - height_frame_*0.05);
+                }
+                p_bullet->set_is_move(true);
+
+                p_bullet_list_.push_back(p_bullet);
+
+                last_bullet_time_ = current_time;
+            }
+
         }
     }
 }
+
 
 void MainObject::HandleBullet(SDL_Renderer* des)
 {
@@ -208,21 +331,26 @@ void MainObject::DoPlayer(Map& map_data)
 {
     if(come_back_time_ == 0)
     {
+        unsigned int current_time = SDL_GetTicks();
+        unsigned int elapsed_time = current_time - start_time_;
+        int cycles = elapsed_time / SPEED_UP_INTERVAL;
+        float speed_multiplier = 1.0f + SPEED_INCREASE_FACTOR * cycles;
+        if(speed_multiplier > MAX_INCREASE_PLAYER)
+        {
+            speed_multiplier = MAX_INCREASE_PLAYER;
+        }
+        int current_speed = (int) (PLAYER_SPEED * speed_multiplier);
+
         x_val_ = 0;
         y_val_ += GRAVITY_SPEED;
 
-        if(y_val_ >= MAX_FALL_SPEED)
-        {
-            y_val_ = MAX_FALL_SPEED;
-        }
-
         if(input_type_.left_ == 1)
         {
-            x_val_ -= PLAYER_SPEED;
+            x_val_ -= current_speed;
         }
         else if(input_type_.right_ == 1)
         {
-            x_val_ += PLAYER_SPEED;
+            x_val_ += current_speed;
         }
 
         if(input_type_.jump_ == 1 && on_ground_)
@@ -236,6 +364,17 @@ void MainObject::DoPlayer(Map& map_data)
         {
             input_type_.jump_ = 0;
         }
+
+        static unsigned int last_time_ = current_time;
+        unsigned int delta_time = current_time - last_time_;
+        last_time_ = current_time;
+
+        float dt_in_seconds = delta_time / 1000.0f;
+
+        score_accumulator_ += dt_in_seconds * (SCORE_TIME_FACTOR / 1000) * speed_multiplier;
+
+        score_ = (int) score_accumulator_;
+
         CheckToMap(map_data);
         CenterEntityOnMap(map_data);
     }
@@ -256,13 +395,15 @@ void MainObject::DoPlayer(Map& map_data)
             y_pos_ = 0;
             x_val_ = 0;
             y_val_ = 0;
+            ActivateShield();
         }
     }
 }
 
 void MainObject::CenterEntityOnMap(Map& map_data)
 {
-    map_data.start_x_ = x_pos_ - (SCREEN_WIDTH/2);
+    map_data.start_x_ = x_pos_ - SCREEN_WIDTH / 2;
+
     if(map_data.start_x_ < 0)
     {
         map_data.start_x_ = 0;
@@ -368,8 +509,9 @@ void MainObject::CheckToMap(Map& map_data)
     {
         x_pos_ = map_data.max_x_ - width_frame_ -1;
     }
-    if(y_pos_ > map_data.max_y_)
+    if(y_pos_ >= map_data.max_y_)
     {
+        DecreaseHealth(1);
         come_back_time_ = COME_BACK_TIME;
     }
 }
@@ -399,3 +541,79 @@ void MainObject::UpdateImagePlayer(SDL_Renderer *des)
         }
     }
 }
+
+void MainObject::RemoveBullet(const int& idx)
+{
+    int size_ = p_bullet_list_.size();
+    if(size_ > 0 && idx < size_)
+    {
+        BulletObject* p_bullet = p_bullet_list_.at(idx);
+        p_bullet_list_.erase(p_bullet_list_.begin() + idx);
+        if(p_bullet)
+        {
+            delete p_bullet;
+            p_bullet = NULL;
+        }
+    }
+}
+
+void MainObject::DecreaseHealth(int value)
+{
+    health_ -= value;
+    if (health_ < 0)
+    {
+        health_ = 0;
+    }
+}
+void MainObject::IncreaseHealth(int value)
+{
+    health_ += value;
+    if (health_ < 0)
+    {
+        health_ = 0;
+    }
+}
+
+double MainObject::GetShieldTimeRemaining()
+{
+    if(shield_active_)
+    {
+        unsigned elapsed = SDL_GetTicks() - shield_start_time_;
+        if(elapsed >= SHIELD_DURATION)
+            return 0;
+        else
+            return (double)(SHIELD_DURATION - elapsed)/1000;
+    }
+    return 0;
+}
+
+double MainObject::GetShieldCooldownTime()
+{
+    if (!shield_on_cooldown_)
+    {
+        return 0;
+    }
+    unsigned current_time = SDL_GetTicks();
+    double remaining = (double)(SHIELD_COOLDOWN - (current_time - shield_cooldown_start_time_)) / 1000;
+    if (remaining < 0.0)
+    {
+        remaining = 0.0;
+    }
+    return remaining;
+}
+
+double MainObject::GetBulletCooldown()
+{
+    unsigned current_time = SDL_GetTicks();
+    if(current_time - last_bullet_time_ >= BULLET_COOLDOWN)
+    {
+        return 0;
+    }
+    else
+    {
+        return (double)(BULLET_COOLDOWN - (current_time - last_bullet_time_))/1000;
+    }
+}
+
+
+

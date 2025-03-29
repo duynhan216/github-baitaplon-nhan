@@ -34,12 +34,20 @@
 		</Compiler>
 		<Unit filename="BaseObject.cpp" />
 		<Unit filename="BaseObject.h" />
+		<Unit filename="BoosterObject.cpp" />
+		<Unit filename="BoosterObject.h" />
+		<Unit filename="BulletObject.cpp" />
+		<Unit filename="BulletObject.h" />
 		<Unit filename="CommonFunc.cpp" />
 		<Unit filename="CommonFunc.h" />
 		<Unit filename="ImpTimer.cpp" />
 		<Unit filename="ImpTimer.h" />
 		<Unit filename="MainObject.cpp" />
 		<Unit filename="MainObject.h" />
+		<Unit filename="TextObject.cpp" />
+		<Unit filename="TextObject.h" />
+		<Unit filename="ThreatsObject.cpp" />
+		<Unit filename="ThreatsObject.h" />
 		<Unit filename="game_map.cpp" />
 		<Unit filename="game_map.h" />
 		<Unit filename="main.cpp" />

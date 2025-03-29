@@ -27,4 +27,4 @@ private:
 
 };
 
-#endif // IMP_TIMER_H_
+#endif
